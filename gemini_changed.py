@@ -24,7 +24,7 @@ if sys.platform == "win32":
 app = Flask(__name__)
 
 # Hardcode the Google API Key (not recommended for production)
-GOOGLE_API_KEY = "AIzaSyCFfQPoSqdz6Lump8bXyxzgOsITBulpTQA"  # Replace with your actual Google API key
+GOOGLE_API_KEY = ""  # Replace with your actual Google API key
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # System prompt for Gemini
