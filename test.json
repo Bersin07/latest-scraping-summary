@@ -1,0 +1,4 @@
+{
+    "model": "nomic-embed-text",
+    "prompt": "test sentence"
+}
