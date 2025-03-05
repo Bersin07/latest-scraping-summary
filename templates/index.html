@@ -20,6 +20,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
+            
         }
 
         h2 {
@@ -82,6 +83,8 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             color: #34495e;
             line-height: 1.6;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
         .response-box h4 {
@@ -122,19 +125,162 @@
             color: #666;
             font-style: italic;
         }
+        .toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.response-box.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    margin-right: 10px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #3498db;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+}
+
+.dark-mode {
+    background: #1e1e1e;
+    color: #f5f5f5;
+}
+
+.dark-mode .container {
+    background: rgba(40, 40, 40, 0.95);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode h2 {
+    color: #f1c40f;
+}
+
+.dark-mode .form-control {
+    background: #2c2c2c;
+    color: #fff;
+}
+
+.dark-mode .btn-primary {
+    background: #f39c12;
+}
+
+.dark-mode .btn-primary:hover {
+    background: #e67e22;
+}
+
+.dark-mode .response-box {
+    background: rgba(30, 30, 30, 0.9);
+    color: #f5f5f5;  /* Even lighter text */
+    border: 1px solid #444;
+}
+.dark-mode .response-box p {
+    /* background: rgba(30, 30, 30, 0.9); */
+    color: #f5f5f5;  /* Even lighter text */
+    /* border: 1px solid #444; */
+}
+.dark-mode #loading p {
+    color: #e0e0e0 !important; /* Light grey for better contrast */
+}
+
+
+        
     </style>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    let responseBox = document.querySelector(".response-box");
+    if (responseBox) {
+        responseBox.classList.add("show");
+    }
+});
+
         function showLoading() {
             document.getElementById("loading").style.display = "block";
+            document.getElementById("searchButton").disabled = true;
         }
         function hideLoading() {
             document.getElementById("loading").style.display = "none";
+            document.getElementById("searchButton").disabled = false;
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("darkModeToggle");
+    const modeText = document.getElementById("modeText");
+    const body = document.body;
+
+    // Load saved mode
+    if (localStorage.getItem("darkMode") === "enabled") {
+        body.classList.add("dark-mode");
+        toggle.checked = true;
+        modeText.textContent = "Light Mode";
+    }
+
+    // Toggle event
+    toggle.addEventListener("change", function () {
+        if (toggle.checked) {
+            body.classList.add("dark-mode");
+            localStorage.setItem("darkMode", "enabled");
+            modeText.textContent = "Light Mode";
+        } else {
+            body.classList.remove("dark-mode");
+            localStorage.setItem("darkMode", "disabled");
+            modeText.textContent = "Dark Mode";
+        }
+    });
+});
+
     </script>
 </head>
 <body>
+    
     <div class="container">
         <h2>LLM Web Search</h2>
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="slider"></span>
+            </label>
+            <span id="modeText">Dark Mode</span>
+        </div>    
         <form method="POST" class="mt-4" onsubmit="showLoading()">
             <div class="mb-4">
                 <input type="text" class="form-control" id="prompt" name="prompt" 
@@ -144,7 +290,7 @@
                 <input class="form-check-input" type="checkbox" id="web_search" name="web_search">
                 <label class="form-check-label" for="web_search">Enable Web Search</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Search</button>
+            <button type="submit" class="btn btn-primary w-100" id="searchButton">Search</button>
         </form>
         
         <div id="loading">

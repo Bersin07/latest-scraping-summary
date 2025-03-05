@@ -85,18 +85,7 @@ def get_query_response_collection():
 
     return collection, chroma_client
 
-# def store_query_response(query, response):
-#     """
-#     Stores the user query and generated response in ChromaDB.
-#     """
-#     collection, _ = get_query_response_collection()
-#     timestamp = str(int(time.time()))  # Unique identifier for the query-response pair
 
-#     collection.upsert(
-#         documents=[query, response],
-#         metadatas=[{"type": "query"}, {"type": "response"}],
-#         ids=[f"query_{timestamp}", f"response_{timestamp}"]
-#     )
 
 def store_query_response(query, response):
     """
@@ -157,12 +146,6 @@ def normalize_url(url):
         .replace("-", "_").replace(".", "_")
     )
 
-# async def get_web_urls(search_term: str, num_results: int = 15):
-#     discard_urls = ["youtube.com", "britannica.com", "vimeo.com"]
-#     for url in discard_urls:
-#         search_term += f" -site: {url}"
-#     results = DDGS().text(search_term, max_results=num_results)
-#     return [result["href"] for result in results]
 
 async def get_web_urls(search_term: str, num_results: int = 15):
     discard_urls = ["youtube.com", "britannica.com", "vimeo.com"]
@@ -254,102 +237,6 @@ def add_to_vector_database(results: list[CrawlResult]):
         if documents:
             collection.upsert(documents=documents, metadatas=metadatas, ids=ids)
 
-# def format_llm_response(response_text: str) -> str:
-#     """
-#     Formats the LLM response into HTML for better readability.
-#     Detects newlines, lists, and paragraphs to create structured output.
-#     """
-#     if not response_text or "no context" in response_text.lower():
-#         return "<p>No response available.</p>"
-
-#     # Remove extra whitespace and split by newlines
-#     lines = [line.strip() for line in response_text.split('\n') if line.strip()]
-    
-#     if not lines:
-#         return f"<p>{response_text}</p>"
-
-#     formatted_html = []
-#     current_paragraph = []
-#     in_list = False
-
-#     for line in lines:
-#         # Check for list items (starts with - or *)
-#         if line.startswith(('- ', '* ')):
-#             if not in_list:
-#                 if current_paragraph:
-#                     formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-#                     current_paragraph = []
-#                 formatted_html.append("<ul>")
-#                 in_list = True
-#             formatted_html.append(f"<li>{line.replace('- ', '').replace('* ', '')}</li>")
-#         else:
-#             if in_list:
-#                 formatted_html.append("</ul>")
-#                 in_list = False
-#             if current_paragraph and line:
-#                 current_paragraph.append(line)
-#             elif line:
-#                 if current_paragraph:
-#                     formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-#                 current_paragraph = [line]
-
-#     # Close any open tags
-#     if in_list:
-#         formatted_html.append("</ul>")
-#     if current_paragraph:
-#         formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-
-#     return ''.join(formatted_html)
-
-# def format_llm_response(response_text: str) -> str:
-#     """
-#     Formats the LLM response into HTML for better readability.
-#     Detects newlines, lists, and paragraphs to create structured output.
-#     """
-#     if not response_text or "no context" in response_text.lower():
-#         return "<p>No response available.</p>"
-
-#     # Normalize whitespace before processing
-#     response_text = " ".join(response_text.strip().split())
-    
-#     # Remove extra whitespace and split by newlines
-#     lines = [line.strip() for line in response_text.split('\n') if line.strip()]
-    
-#     if not lines:
-#         return f"<p>{response_text}</p>"
-
-#     formatted_html = []
-#     current_paragraph = []
-#     in_list = False
-
-#     for line in lines:
-#         # Check for list items (starts with - or *)
-#         if line.startswith(('- ', '* ')):
-#             if not in_list:
-#                 if current_paragraph:
-#                     formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-#                     current_paragraph = []
-#                 formatted_html.append("<ul>")
-#                 in_list = True
-#             formatted_html.append(f"<li>{line.replace('- ', '').replace('* ', '')}</li>")
-#         else:
-#             if in_list:
-#                 formatted_html.append("</ul>")
-#                 in_list = False
-#             if current_paragraph and line:
-#                 current_paragraph.append(line)
-#             elif line:
-#                 if current_paragraph:
-#                     formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-#                 current_paragraph = [line]
-
-#     # Close any open tags
-#     if in_list:
-#         formatted_html.append("</ul>")
-#     if current_paragraph:
-#         formatted_html.append(f"<p>{' '.join(current_paragraph)}</p>")
-
-#     return ''.join(formatted_html)
 
 def format_llm_response(response_text: str) -> str:
     """
