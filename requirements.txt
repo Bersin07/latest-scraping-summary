@@ -1,0 +1,12 @@
+Flask
+gunicorn
+asyncio
+requests
+urllib3
+duckduckgo-search
+crawl4ai
+chromadb
+tempfile
+langchain-community
+langchain-text-splitters
+ollama
