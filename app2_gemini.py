@@ -18,11 +18,17 @@ import sys
 import time
 from duckduckgo_search.exceptions import DuckDuckGoSearchException
 import requests
+import google.generativeai as genai
+
 
 
 # Replace these with your Google API Key and Custom Search Engine (CSE) ID
 GOOGLE_API_KEY = "AIzaSyCywxFplOkVXs7kklrII66oSDNyp4kkgLg"
 GOOGLE_CSE_ID = "64888ddbc66cd43b6"
+
+# Configure Gemini API
+GENAI_API_KEY = "AIzaSyBjOR_Ph4gU7sLkRbiBx191PJNvt16fit0"
+genai.configure(api_key=GENAI_API_KEY)
 
 # Set event loop policy for Windows
 if sys.platform == "win32":
@@ -179,29 +185,6 @@ def google_search(query, num_results=10, retries=3):
     return []
 
 
-# async def get_web_urls(search_term: str, num_results: int = 15):
-#     discard_urls = ["youtube.com", "britannica.com", "vimeo.com"]
-#     for url in discard_urls:
-#         search_term += f" -site: {url}"
-#     try:
-#         time.sleep(1)  # Respect rate limits with a 1-second delay
-#         results = DDGS().text(search_term, max_results=num_results)
-#         return [result["href"] for result in results]
-#     except DuckDuckGoSearchException as e:
-#         if "Ratelimit" in str(e):
-#             print("Rate limit hit. Waiting before retrying...")
-#             time.sleep(5)  # Wait longer on rate limit
-#             try:
-#                 results = DDGS().text(search_term, max_results=num_results)
-#                 return [result["href"] for result in results]
-#             except Exception as e:
-#                 print(f"Retry failed: {e}")
-#                 return []
-#         else:
-#             print(f"Search error: {e}")
-#             return []
-
-# Flask integration (replace get_web_urls function)
 async def get_web_urls(search_term: str, num_results: int = 15):
     """
     Fetch web URLs using Google Search instead of DuckDuckGo.
@@ -311,27 +294,55 @@ def format_llm_response(response_text: str) -> str:
     return ''.join(formatted_html)
 
 
+# def call_llm(prompt: str, with_context: bool = True, context: str | None = None):
+#     """
+#     Calls the Ollama LLM with the given prompt and context, returning a formatted response.
+#     """
+#     messages = [
+#         {"role": "system", "content": system_prompt},
+#         {"role": "user", "content": f"Context: {context}, Question: {prompt}"},
+#     ]
+#     if not with_context:
+#         messages.pop(0)
+#         messages[0]["content"] = prompt
+
+#     response = ollama.chat(model="gemma3", stream=True, messages=messages)
+#     accumulated_response = ""
+#     for chunk in response:
+#         if chunk["done"] is False:
+#             accumulated_response += chunk["message"]["content"] + " "
+#     # Normalize whitespace: remove extra spaces and ensure single spaces between words
+#     print(f"Debug - Raw LLM Response: {accumulated_response}")  # Add debug print
+#     cleaned_response = " ".join(accumulated_response.strip().split())
+#     return cleaned_response.strip()
+
+
 def call_llm(prompt: str, with_context: bool = True, context: str | None = None):
     """
-    Calls the Ollama LLM with the given prompt and context, returning a formatted response.
+    Calls the Gemini 2.0 API with the given prompt and optional context.
+    Returns the formatted response or an error message.
     """
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Context: {context}, Question: {prompt}"},
-    ]
-    if not with_context:
-        messages.pop(0)
-        messages[0]["content"] = prompt
+    try:
+        model = genai.GenerativeModel("gemini-2.0-flash-001")
 
-    response = ollama.chat(model="gemma3", stream=True, messages=messages)
-    accumulated_response = ""
-    for chunk in response:
-        if chunk["done"] is False:
-            accumulated_response += chunk["message"]["content"] + " "
-    # Normalize whitespace: remove extra spaces and ensure single spaces between words
-    print(f"Debug - Raw LLM Response: {accumulated_response}")  # Add debug print
-    cleaned_response = " ".join(accumulated_response.strip().split())
-    return cleaned_response.strip()
+        # Construct message payload properly
+        if with_context and context:
+            full_prompt = f"Context: {context}\n\nQuestion: {prompt}"
+        else:
+            full_prompt = prompt
+
+        response = model.generate_content([{"text": full_prompt}])  # Correct structure
+
+        # Extract response text safely
+        if response and hasattr(response, "text"):
+            return response.text.strip()
+        else:
+            return "Error: No response generated."
+
+    except Exception as e:
+        print(f"❌ Gemini API Error: {e}")
+        return "Error: Unable to process the request."
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
